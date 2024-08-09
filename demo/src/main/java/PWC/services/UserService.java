@@ -81,29 +81,5 @@ public class UserService {
     }
 
 
-    public void  likePost (long postId){
-        Post post = postRepository.findById(postId).orElse(null);
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = (User) authentication.getPrincipal();
-        if(!post.getLikedUsers().contains(user)){
-            post.getLikedUsers().add(user);
-            post.setLikes(post.getLikes()+1);
-            postRepository.save(post);
-        }
-
-    }
-    public void  unlikePost (long postId){
-        Post post = postRepository.findById(postId).orElse(null);
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = (User) authentication.getPrincipal();
-        if(post.getLikedUsers().contains(user)){
-            post.getLikedUsers().remove(user);
-            post.setLikes(post.getLikes()-1);
-            postRepository.save(post);
-        }
-
-    }
-
-
 
 }

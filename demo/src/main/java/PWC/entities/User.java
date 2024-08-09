@@ -30,7 +30,6 @@ public class User implements UserDetails {
     private Integer tel;
     @Column(length = 1500)
     private String informations;
-
     @Enumerated(EnumType.STRING)
     private Role role;
 
@@ -40,6 +39,9 @@ public class User implements UserDetails {
     @JsonIgnore
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Post> posts;
+    @JsonIgnore
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<Story> stories;
 
     @JsonIgnore
     @ManyToMany

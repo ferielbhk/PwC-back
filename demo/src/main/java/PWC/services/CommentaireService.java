@@ -1,19 +1,22 @@
 package PWC.services;
 
-import PWC.entities.Commentaire;
-import PWC.entities.Post;
-import PWC.entities.User;
+import PWC.controllers.NotificationController;
+import PWC.entities.*;
 import PWC.repository.CommentaireRepository;
+import PWC.repository.NotificationRepository;
 import PWC.repository.PostRepository;
 import PWC.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
-import org.springframework.security.core.Authentication;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
+import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
-
-
 @Service
 @AllArgsConstructor
 public class CommentaireService {
@@ -21,40 +24,40 @@ public class CommentaireService {
     private final PostService postService;
     private final UserRepository userRepository;
     private final PostRepository postRepository;
+    private final NotificationService notificationService;
 
-
+    private final RestTemplate restTemplate;
+    @Autowired
+    private NotificationController notificationController;
+    @Autowired
+    private NotificationRepository notificationRepository;
 
     public Commentaire createComment(Long postId, Integer userId, Commentaire commentaire) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("Post not found"));
-            commentaire.setPost(post);
-            commentaire.setUser(user);
-            post.getComments().add(commentaire);
-            post.setCommentaires(post.getCommentaires() + 1);
-            return commentaireRepository.save(commentaire);
-}
 
-    public List<Commentaire> getCommentsByPost(Long postId) {
-        return commentaireRepository.findByPostId(postId);
-    }
+        commentaire.setPost(post);
+        commentaire.setUser(user);
+        post.getComments().add(commentaire);
+        post.setCommentaires(post.getCommentaires() + 1);
 
-    public Commentaire updateComment(Long commentId, String newContent) {
-        Commentaire commentaire = commentaireRepository.findById(commentId).get();
+        Commentaire commentResult = commentaireRepository.save(commentaire);
 
-           commentaire.setContent(newContent);
-            return commentaireRepository.save(commentaire);
-
-    }
-
-    public void deleteComment(Long commentId) {
-       Commentaire commentaire= commentaireRepository.findById(commentId).get();
-            Post post = commentaire.getPost();
-            post.getComments().remove(commentaire);
-            post.setCommentaires(post.getCommentaires() - 1);
-            commentaireRepository.delete(commentaire);
+       if (!post.getUser().getId().equals(user.getId())) {
+            Notifications event = new Notifications();
+            event.setPostId(postId);
+            event.setUserIdSender(commentaire.getUser().getId());
+            event.setMessage(" New comment on your post from "+commentaire.getUser().getFirstname()+" "+commentaire.getUser().getLastname());
+            event.setTimestamp(new Date());
+            event.setType(NotificationType.COMMENT);
+            event.setUserIdReceiver(post.getUser().getId());
+            notificationRepository.save(event);
+            notificationController.publishNotification(event);
         }
+
+        return commentResult;
     }
-
-
+}
+//SecurityContextHolder.getContext().getAuthentication()

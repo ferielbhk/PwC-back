@@ -21,10 +21,8 @@ public class Post {
     private String content;
     private int likes = 0;
     private int commentaires;
-
     @Lob
     private byte[] image;
-
 
     @ManyToOne
     @JoinColumn(name = "user_id" , nullable = false)

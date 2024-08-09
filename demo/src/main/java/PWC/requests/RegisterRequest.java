@@ -1,6 +1,4 @@
 package PWC.requests;
-
-
 import PWC.entities.Role;
 import jakarta.persistence.Lob;
 import lombok.AllArgsConstructor;

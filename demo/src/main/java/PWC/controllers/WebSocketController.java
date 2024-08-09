@@ -14,4 +14,11 @@ public class WebSocketController {
         public String processMessageFromClient(String message) {
             return message;
         }
+
+    @MessageMapping("/websocket-notification")
+    @SendTo("/topic/websocket-notification")
+    public String processNotificationFromClient(String message) {
+        return message;
     }
+
+}
